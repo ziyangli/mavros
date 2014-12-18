@@ -27,7 +27,7 @@
 #include <mavros/utils.h>
 #include <mavconn/interface.h>
 
-#include <mavros/Mavlink.h>
+#include <mavros/Mavlink.h> // msg
 
 using namespace mavros;
 using namespace mavconn;
