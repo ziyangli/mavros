@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   std_msgs
+  geometry_msgs
   std_srvs
   tf
   angles
@@ -71,6 +72,9 @@ add_message_files(
   VFR_HUD.msg
   FileEntry.msg
   ActuatorControl.msg
+
+  ManualSetpoint.msg
+  AttitudeCtrl.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -118,6 +122,7 @@ generate_messages(
   diagnostic_msgs
   sensor_msgs
   std_msgs
+  geometry_msgs
 )
 
 
@@ -191,6 +196,8 @@ add_library(mavros_plugins
   src/plugins/vfr_hud.cpp
   src/plugins/ftp.cpp
   src/plugins/actuator_control.cpp
+
+  src/plugins/manual_setpoint.cpp
 )
 add_dependencies(mavros_plugins
   mavros

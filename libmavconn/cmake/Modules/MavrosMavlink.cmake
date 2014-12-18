@@ -11,7 +11,7 @@ if (NOT DEFINED mavlink_DIALECTS)
 endif ()
 
 # Select MAVLink dialect
-set(MAVLINK_DIALECT "ardupilotmega" CACHE STRING "MAVLink dialect selector")
+set(MAVLINK_DIALECT "pixhawk" CACHE STRING "MAVLink dialect selector")
 set_property(CACHE MAVLINK_DIALECT PROPERTY STRINGS ${mavlink_DIALECTS})
 
 # check that selected dialect are known

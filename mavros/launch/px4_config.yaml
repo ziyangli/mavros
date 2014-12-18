@@ -86,6 +86,7 @@ setpoint_accel:
 setpoint_attitude:
   listen_tf: false
   listen_twist: false
+  listen_att_ctrl: true
   pose_with_covariance: false
   frame_id: "local_origin"
   child_frame_id: "attitude"
