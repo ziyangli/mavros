@@ -50,9 +50,8 @@ public:
 
 	const message_map get_rx_handlers() {
 		return {
-			       MESSAGE_HANDLER(MAVLINK_MSG_ID_GPS_RAW_INT, &GPSPlugin::handle_gps_raw_int),
-			       MESSAGE_HANDLER(MAVLINK_MSG_ID_GPS_STATUS, &GPSPlugin::handle_gps_status),
-		};
+            MESSAGE_HANDLER(MAVLINK_MSG_ID_GPS_RAW_INT, &GPSPlugin::handle_gps_raw_int),
+        };
 	}
 
 private:
@@ -129,17 +128,7 @@ private:
 		}
 	}
 
-	void handle_gps_status(const mavlink_message_t *msg, uint8_t sysid, uint8_t compid) {
-		// TODO: not supported by APM:Plane,
-		//       no standard ROS messages
-		mavlink_gps_status_t gps_stat;
-		mavlink_msg_gps_status_decode(msg, &gps_stat);
-
-		ROS_INFO_THROTTLE_NAMED(30, "gps", "GPS stat sat visible: %d", gps_stat.satellites_visible);
-	}
-
-
-	/* -*- diagnostics -*- */
+    /* -*- diagnostics -*- */
 	void diag_run(diagnostic_updater::DiagnosticStatusWrapper &stat) {
 		int fix_type, satellites_visible;
 		float eph, epv;

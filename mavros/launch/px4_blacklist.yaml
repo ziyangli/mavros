@@ -11,3 +11,4 @@ plugin_blacklist:
 - 'image_pub'
 - 'px4flow'
 - 'rc_io'
+- 'ftp'
