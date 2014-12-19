@@ -8,3 +8,6 @@ plugin_blacklist:
 - 'mocap_pose_estimate'
 - 'local_position'
 - 'global_position'
+- 'image_pub'
+- 'px4flow'
+- 'rc_io'
