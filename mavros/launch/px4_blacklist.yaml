@@ -12,3 +12,6 @@ plugin_blacklist:
 - 'px4flow'
 - 'rc_io'
 - 'ftp'
+- 'setpoint_accel'
+- 'setpoint_position'
+- 'setpoint_velocity'
