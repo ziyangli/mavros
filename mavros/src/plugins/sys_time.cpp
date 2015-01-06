@@ -143,7 +143,8 @@ public:
 	SystemTimePlugin():
 		uas(nullptr),
 		dt_diag("Time Sync", 10),
-		time_offset_ns(0)
+		time_offset_ns(0),
+		offset_avg_alpha(0)
 	{};
 
 	void initialize(UAS &uas_,
@@ -160,7 +161,13 @@ public:
 	
 		nh.param<std::string>("frame_id", frame_id, "fcu");
 		nh.param<std::string>("time_ref_source", time_ref_source, frame_id);
-
+		nh.param("timesync_avg_alpha", offset_avg_alpha, 0.6);
+		/*
+		 * alpha for exponential moving average. The closer alpha is to 1.0,
+		 * the faster the moving average updates in response to new offset samples (more jitter)
+		 * We need a significant amount of smoothing , more so for lower message rates like 1Hz
+		 */
+		
 		diag_updater.add(dt_diag);
 
 		time_ref_pub = nh.advertise<sensor_msgs::TimeReference>("time_reference", 10);
@@ -204,6 +211,7 @@ private:
 	std::string frame_id;
 	std::string time_ref_source;
 	int64_t time_offset_ns;
+	double offset_avg_alpha;
 
 	void handle_system_time(const mavlink_message_t *msg, uint8_t sysid, uint8_t compid) {
 		mavlink_system_time_t mtime;
@@ -244,11 +252,11 @@ private:
 		}
 		else if(tsync.tc1 > 0) { 
 
-			int64_t offset_ns = (9*time_offset_ns + (tsync.ts1 + now_ns - tsync.tc1*2)/2 )/10; // average offset
+			int64_t offset_ns = (tsync.ts1 + now_ns - tsync.tc1*2)/2 ; 
 			int64_t dt = time_offset_ns - offset_ns;
 			
 			if(std::abs(dt) > 10000000) { // 10 millisecond skew
-				time_offset_ns = (tsync.ts1 + now_ns - tsync.tc1*2)/2 ; // hard-set it.
+				time_offset_ns = offset_ns ; // hard-set it.
 				uas->set_time_offset(time_offset_ns);
 
 				dt_diag.clear();
@@ -258,7 +266,7 @@ private:
 					"Hard syncing clocks.", dt / 1e9);
 			}
 			else {
-				time_offset_ns = offset_ns;
+				average_offset(offset_ns);
 				dt_diag.tick(dt, tsync.tc1, time_offset_ns);
 
 				uas->set_time_offset(time_offset_ns);
@@ -297,6 +305,12 @@ private:
 				);
 		UAS_FCU(uas)->send_message(&msg);
 	}	
+
+	void average_offset(int64_t offset_ns) {
+		
+		time_offset_ns = (offset_avg_alpha * offset_ns) + (1.0 - offset_avg_alpha) * time_offset_ns;
+	
+	}
 
 
 };
