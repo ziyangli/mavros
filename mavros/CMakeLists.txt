@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   std_msgs
+  geometry_msgs
   std_srvs
   tf
   angles
@@ -73,6 +74,7 @@ add_message_files(
   ActuatorControl.msg
 
   ManualSetpoint.msg
+  AttitudeCtrl.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -120,6 +122,7 @@ generate_messages(
   diagnostic_msgs
   sensor_msgs
   std_msgs
+  geometry_msgs
 )
 
 
