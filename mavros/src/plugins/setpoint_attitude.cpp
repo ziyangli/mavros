@@ -33,6 +33,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <std_msgs/Float64.h>
+#include <mavros/AttitudeCtrl.h>
 
 namespace mavplugin {
 
@@ -57,14 +58,17 @@ public:
 		bool pose_with_covariance;
 		bool listen_tf;
 		bool listen_twist;
+        bool listen_att_ctrl;
 
 		uas = &uas_;
 		sp_nh = ros::NodeHandle(nh, "setpoint");
 
-		sp_nh.param("attitude/listen_twist", listen_twist, true);
+		sp_nh.param("attitude/listen_twist", listen_twist, false);
 		sp_nh.param("attitude/pose_with_covariance", pose_with_covariance, false);
 		// may be used to mimic attitude of an object, a gesture, etc.
 		sp_nh.param("attitude/listen_tf", listen_tf, false);
+        sp_nh.param("attitude/listen_att_ctrl", listen_att_ctrl, true);
+
 		sp_nh.param<std::string>("attitude/frame_id", frame_id, "local_origin");
 		sp_nh.param<std::string>("attitude/child_frame_id", child_frame_id, "attitude");
 		sp_nh.param("attitude/tf_rate_limit", tf_rate, 10.0);
@@ -83,12 +87,15 @@ public:
 			ROS_DEBUG_NAMED("attitude", "Setpoint attitude topic type: PoseWithCovarianceStamped");
 			att_sub = sp_nh.subscribe("attitude", 10, &SetpointAttitudePlugin::pose_cov_cb, this);
 		}
+        else if (listen_att_ctrl) {
+            att_sub = sp_nh.subscribe("attitude_ctrl", 10, &SetpointAttitudePlugin::att_ctrl_cb, this);
+        }
 		else {
 			ROS_DEBUG_NAMED("attitude", "Setpoint attitude topic type: PoseStamped");
 			att_sub = sp_nh.subscribe("attitude", 10, &SetpointAttitudePlugin::pose_cb, this);
 		}
 
-		throttle_sub = sp_nh.subscribe("att_throttle", 10, &SetpointAttitudePlugin::throttle_cb, this);
+		// throttle_sub = sp_nh.subscribe("att_throttle", 10, &SetpointAttitudePlugin::throttle_cb, this);
 	}
 
 	const std::string get_name() const {
@@ -105,7 +112,7 @@ private:
 
 	ros::NodeHandle sp_nh;
 	ros::Subscriber att_sub;
-	ros::Subscriber throttle_sub;
+	// ros::Subscriber throttle_sub;
 
 	std::string frame_id;
 	std::string child_frame_id;
@@ -139,7 +146,7 @@ private:
 	 * ENU frame.
 	 */
 	void send_attitude_transform(const tf::Transform &transform, const ros::Time &stamp) {
-		// Thrust + RPY, also bits noumbering started from 1 in docs
+		// Thrust + RPY, also bits numbering started from 1 in docs
 		const uint8_t ignore_all_except_q = (1<<6)|(7<<0);
 		float q[4];
 
@@ -163,7 +170,7 @@ private:
 	 * ENU frame.
 	 */
 	void send_attitude_ang_velocity(const ros::Time &stamp, const float vx, const float vy, const float vz) {
-		// Q + Thrust, also bits noumbering started from 1 in docs
+		// Q + Thrust, also bits numbering started from 1 in docs
 		const uint8_t ignore_all_except_rpy = (1<<7)|(1<<6);
 		float q[4] = { 1.0, 0.0, 0.0, 0.0 };
 
@@ -189,7 +196,35 @@ private:
 				throttle);
 	}
 
+    /**
+     * Send attitude and thrust to FCU attitude controller
+     */
+    void send_attitude_and_throttle(const ros::Time &stamp, const float qx, const float qy, const float qz, const float qw, const float throttle) {
+        // check mavlink_msg_set_attitude_target.h for type_mask definition
+        const uint8_t ignore_all_except_q_and_throttle = (7<<0);
+        float q[4];
+        q[0] = qw;
+        q[1] = qx;
+        q[2] = qy;
+        q[3] = qz;
+
+        set_attitude_target(ros::Time::now().toNSec() / 1000000,
+                            ignore_all_except_q_and_throttle,
+                            q,
+                            0.0, 0.0, 0.0,
+                            throttle);
+    }
+
 	/* -*- callbacks -*- */
+
+    void att_ctrl_cb(const mavros::AttitudeCtrl::ConstPtr &req) {
+        send_attitude_and_throttle(req->header.stamp,
+                                   req->q.x,
+                                   req->q.y,
+                                   req->q.z,
+                                   req->q.w,
+                                   req->throttle);
+    }
 
 	void pose_cov_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &req) {
 		tf::Transform transform;

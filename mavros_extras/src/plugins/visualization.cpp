@@ -50,14 +50,14 @@ public:
 		uas = &uas_;
 
 		viz_nh = ros::NodeHandle(nh, "visualization");
-		
+
 		viz_nh.param<std::string>("visualization/fixed_frame_id", fixed_frame_id, "local_origin");
 		viz_nh.param<std::string>("visualization/child_frame_id", child_frame_id, "fcu");
-		viz_nh.param<double>("visualization/marker_scale", marker_scale, 2.0);		
+		viz_nh.param<double>("visualization/marker_scale", marker_scale, 2.0);
 
 		track_marker = viz_nh.advertise<visualization_msgs::Marker>("track_markers", 10);
 		vehicle_marker = viz_nh.advertise<visualization_msgs::Marker>("vehicle_marker", 10);
-		
+
 	}
 
 	std::string const get_name() const {
@@ -75,7 +75,7 @@ private:
 	UAS *uas;
 
 	ros::NodeHandle viz_nh;
-	
+
 	ros::Publisher track_marker;
 	ros::Publisher vehicle_marker;
 
@@ -99,7 +99,7 @@ private:
 		pose->header.frame_id = fixed_frame_id;
 		pose->header.stamp = ros::Time();
 
-		publish_vehicle_marker(); 
+		publish_vehicle_marker();
 		publish_vis_marker(pose);
 
 	}
@@ -107,7 +107,7 @@ private:
 	void publish_vis_marker(geometry_msgs::PoseStampedPtr pose)
 	{
 		visualization_msgs::MarkerPtr marker = boost::make_shared<visualization_msgs::Marker>();
-		
+
 		marker->header = pose->header;
 		marker->type = visualization_msgs::Marker::CUBE;
 		marker->ns = "fcu";
@@ -117,20 +117,20 @@ private:
 		marker->scale.x = marker_scale*0.015;
 		marker->scale.y = marker_scale*0.015;
 		marker->scale.z = marker_scale*0.015;
-		
+
 		marker->color.a = 1.0;
 		marker->color.r = 0.0;
 		marker->color.g = 0.0;
 		marker->color.b = 0.5;
-	
+
 		track_marker.publish(marker);
 
 	}
 
 	void publish_vehicle_marker() {
-	
+
 		/** Hexacopter marker code adapted from libsfly_viz
-		 *  thanks to Markus Achtelik. 		 
+		 *  thanks to Markus Achtelik.
 		 */
 
   		const double sqrt2_2 = sqrt(2) / 2;
@@ -143,7 +143,7 @@ private:
 		marker->header.frame_id = child_frame_id;
   		marker->ns = "fcu";
   		marker->action = visualization_msgs::Marker::ADD;
-  		marker->id = id; 
+  		marker->id = id;
 
   		// make rotors
   		marker->type = visualization_msgs::Marker::CYLINDER;
@@ -166,7 +166,7 @@ private:
   		marker->pose.position.y = -0.11*marker_scale;
   		marker->id--;
   		vehicle_marker.publish(marker);
-	
+
   		// left/right
   		marker->pose.position.x = 0;
   		marker->pose.position.y = 0.22*marker_scale;
@@ -228,4 +228,3 @@ private:
 }; // namespace mavplugin
 
 PLUGINLIB_EXPORT_CLASS(mavplugin::VisualizationPlugin, mavplugin::MavRosPlugin)
-
