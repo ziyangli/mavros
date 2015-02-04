@@ -17,3 +17,4 @@ plugin_blacklist:
 - 'setpoint_velocity'
 - 'visualization'
 - 'param'
+- 'gps'
