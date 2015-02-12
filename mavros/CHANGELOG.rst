@@ -2,10 +2,38 @@
 Changelog for package mavros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.1 (2015-02-02)
+-------------------
+* Fix @mhkabir name in contributors.
+* uas `#200 <https://github.com/vooon/mavros/issues/200>`_: Add APM:Rover custom mode decoding.
+  Fix `#200 <https://github.com/vooon/mavros/issues/200>`_.
+* uas `#200 <https://github.com/vooon/mavros/issues/200>`_: Update APM:Plane and APM:Copter modes.
+* Contributors: Vladimir Ermakov
+
+0.10.0 (2015-01-24)
+-------------------
+* mavros `#154 <https://github.com/vooon/mavros/issues/154>`_: Add IO stats to diagnostics.
+  Fix `#154 <https://github.com/vooon/mavros/issues/154>`_.
+* Add rosindex metadata
+* plugin: ftp: init ctor.
+* plugin: sts_time: Code cleanup and codestyle fix.
+* plugin: command: Quirk for older FCU's (component_id)
+  Older FCU's expect that commands addtessed to MAV_COMP_ID_SYSTEM_CONTROL.
+  Now there parameter: `~cmd/use_comp_id_system_control`
+* plugin: rc_io: `#185 <https://github.com/vooon/mavros/issues/185>`_ Use synchronized timestamp.
+* plugin: gps: `#185 <https://github.com/vooon/mavros/issues/185>`_ use synchronized timestamp
+  common.xml tells that GPS_RAW_INT have time_usec stamps.
+* uas: Fix ros timestamp calculation.
+  Issues: `#186 <https://github.com/vooon/mavros/issues/186>`_, `#185 <https://github.com/vooon/mavros/issues/185>`_.
+* plugin: add synchronisation to most plugins (fixed)
+  Closes `#186 <https://github.com/vooon/mavros/issues/186>`_.
+* readme: Add notes about coordinate frame conversions `#49 <https://github.com/vooon/mavros/issues/49>`_
+* Contributors: Mohammed Kabir, Vladimir Ermakov
+
 0.9.4 (2015-01-06)
 ------------------
 * plugin: sys_time: enable EMA
-* Contributors: M.H.Kabir
+* Contributors: Mohammed Kabir
 
 0.9.3 (2014-12-30)
 ------------------
@@ -25,7 +53,7 @@ Changelog for package mavros
 * New message, moving average compensation
 * Initial import new sync interface
 * plugin: sys_status: Enable TERRAIN health decoding.
-* Contributors: Kabir Mohammed, M.H.Kabir, Mohammed Kabir, Vladimir Ermakov
+* Contributors: Mohammed Kabir, Vladimir Ermakov
 
 0.9.2 (2014-11-04)
 ------------------
@@ -536,7 +564,7 @@ Changelog for package mavros
 * mavconn: Move MAVConnSerial to libev.
   Adds stub for open URL function.
   Issure `#54 <https://github.com/vooon/mavros/issues/54>`_.
-* Contributors: Vladimir Ermakov, M.H.Kabir, Nuno Marques, Glenn Gregory
+* Contributors: Vladimir Ermakov, Mohammed Kabir, Nuno Marques, Glenn Gregory
 
 0.6.0 (2014-07-17)
 ------------------
