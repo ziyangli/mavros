@@ -35,29 +35,17 @@ namespace mavplugin {
 /**
  * @brief manual_setpoint plugin.
  *
- * Example and "how to" for users.
  */
 class ManualSetpointPlugin : public MavRosPlugin {
 public:
-	ManualSetpointPlugin() :
-        uas(nullptr)
-    { };
+    ManualSetpointPlugin() :
+        nh("~"),
+        uas(nullptr) { };
 
-	void initialize(UAS &uas_,
-			ros::NodeHandle &nh,
-			diagnostic_updater::Updater &diag_updater)
-	{
+    void initialize(UAS &uas_) {
         uas = &uas_;
-
-        man_sp_nh = ros::NodeHandle(nh, "setpoint");
-
-        man_sp_pub = man_sp_nh.advertise<mavros::ManualSetpoint>("manual", 10);
-
-	};
-
-	std::string const get_name() const {
-		return "ManualSetpoint";
-	};
+        pubSP = nh.advertise<mavros::ManualSetpoint>("manual", 10);
+    };
 
 	const message_map get_rx_handlers() {
 		return {
@@ -67,10 +55,10 @@ public:
 
 private:
 
+    ros::NodeHandle nh;
     UAS *uas;
 
-    ros::NodeHandle man_sp_nh;
-    ros::Publisher man_sp_pub;
+    ros::Publisher pubSP;
 
 	void handle_manual_control(const mavlink_message_t *msg, uint8_t sysid, uint8_t compid) {
         mavlink_manual_control_t man_ctrl;
@@ -84,7 +72,7 @@ private:
         man_sp_msg->z = man_ctrl.z;
         man_sp_msg->r = man_ctrl.r;
         man_sp_msg->buttons = man_ctrl.buttons;
-        man_sp_pub.publish(man_sp_msg);
+        pubSP.publish(man_sp_msg);
 	}
 
 };
