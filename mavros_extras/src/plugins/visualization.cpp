@@ -202,3 +202,4 @@ private:
 };	// namespace mavplugin
 
 PLUGINLIB_EXPORT_CLASS(mavplugin::VisualizationPlugin, mavplugin::MavRosPlugin)
+
