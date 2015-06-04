@@ -48,10 +48,10 @@ public:
 		bool listen_twist;
         bool listen_att_ctrl;
 
-		uas = &uas_;
+        uas = &uas_;
 
-        sp_nh.param("listen_twist", listen_twist, true);
-		sp_nh.param("pose_with_covariance", pose_with_covariance, false);
+        sp_nh.param("listen_twist", listen_twist, false);
+        sp_nh.param("pose_with_covariance", pose_with_covariance, false);
 		// may be used to mimic attitude of an object, a gesture, etc.
         sp_nh.param("listen_tf", listen_tf, false);
         sp_nh.param("listen_att_ctrl", listen_att_ctrl, true);

@@ -129,7 +129,7 @@ private:
 	}
 
     /* -*- diagnostics -*- */
-	void diag_run(diagnostic_updater::DiagnosticStatusWrapper &stat) {
+    void diag_run(diagnostic_updater::DiagnosticStatusWrapper &stat) {
 		int fix_type, satellites_visible;
 		float eph, epv;
 
