@@ -1,0 +1,10 @@
+plugin_blacklist:
+- '3dr_radio'
+- 'waypoint'
+- 'vision_speed_estimate'
+- 'vision_pose_estimate'
+- 'vfr_hud'
+- 'safety_area'
+- 'mocap_pose_estimate'
+- 'local_position'
+- 'global_position'
