@@ -6,21 +6,13 @@
 /*
  * Copyright 2014 Vladimir Ermakov.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * This file is part of the mavros package and subject to the license terms
+ * in the top-level LICENSE file of the mavros repository.
+ * https://github.com/mavlink/mavros/tree/master/LICENSE.md
  */
 
+#include <array>
+#include <unordered_map>
 #include <stdexcept>
 #include <mavros/mavros_uas.h>
 #include <mavros/utils.h>
@@ -28,62 +20,10 @@
 
 using namespace mavros;
 
-UAS::UAS() :
-	type(MAV_TYPE_GENERIC),
-	autopilot(MAV_AUTOPILOT_GENERIC),
-	target_system(1),
-	target_component(1),
-	connected(false),
-	angular_velocity(),
-	linear_acceleration(),
-	orientation(),
-	gps_latitude(0),
-	gps_longitude(0),
-	gps_altitude(0),
-	gps_eph(0),
-	gps_epv(0),
-	fix_status(0)
-{
-}
-
-void UAS::stop(void)
-{
-}
-
-/* -*- time syncronise functions -*- */
-
-static inline ros::Time ros_time_from_ns(uint64_t &stamp_ns) {
-	return ros::Time(
-			stamp_ns / 1000000000UL,	// t_sec
-			stamp_ns % 1000000000UL);	// t_nsec
-}
-
-ros::Time UAS::synchronise_stamp(uint32_t time_boot_ms) {
-	// copy offset from atomic var
-	uint64_t offset_ns = time_offset;
-
-	if (offset_ns > 0) {
-		uint64_t stamp_ns = static_cast<uint64_t>(time_boot_ms) * 1000000UL + offset_ns;
-		return ros_time_from_ns(stamp_ns);
-	}
-	else
-		return ros::Time::now();
-}
-
-ros::Time UAS::synchronise_stamp(uint64_t time_usec) {
-	uint64_t offset_ns = time_offset;
-
-	if (offset_ns > 0) {
-		uint64_t stamp_ns = time_usec * 1000UL + offset_ns;
-		return ros_time_from_ns(stamp_ns);
-	}
-	else
-		return ros::Time::now();
-}
 
 /* -*- mode stringify functions -*- */
 
-typedef std::map<uint32_t, std::string> cmode_map;
+typedef std::unordered_map<uint32_t, const std::string> cmode_map;
 
 /** APM:Plane custom mode -> string
  *
@@ -187,7 +127,8 @@ static inline std::string str_mode_px4(uint32_t custom_mode_int) {
 	// clear fields
 	custom_mode.reserved = 0;
 	if (custom_mode.main_mode != px4::custom_mode::MAIN_MODE_AUTO) {
-		ROS_WARN_COND_NAMED(custom_mode.sub_mode != 0, "uas", "PX4: Unknown sub-mode");
+		ROS_WARN_COND_NAMED(custom_mode.sub_mode != 0, "uas", "PX4: Unknown sub-mode %d.%d",
+				custom_mode.main_mode, custom_mode.sub_mode);
 		custom_mode.sub_mode = 0;
 	}
 
@@ -196,10 +137,10 @@ static inline std::string str_mode_px4(uint32_t custom_mode_int) {
 
 static inline bool is_apm_copter(enum MAV_TYPE &type) {
 	return type == MAV_TYPE_QUADROTOR ||
-		type == MAV_TYPE_HEXAROTOR ||
-		type == MAV_TYPE_OCTOROTOR ||
-		type == MAV_TYPE_TRICOPTER ||
-		type == MAV_TYPE_COAXIAL;
+	       type == MAV_TYPE_HEXAROTOR ||
+	       type == MAV_TYPE_OCTOROTOR ||
+	       type == MAV_TYPE_TRICOPTER ||
+	       type == MAV_TYPE_COAXIAL;
 }
 
 std::string UAS::str_mode_v10(uint8_t base_mode, uint32_t custom_mode) {
@@ -226,6 +167,10 @@ std::string UAS::str_mode_v10(uint8_t base_mode, uint32_t custom_mode) {
 		/* TODO: other autopilot */
 		return str_custom_mode(custom_mode);
 }
+
+/* XXX TODO
+ * Add a fallback CMODE(dec) decoder for unknown FCU's
+ */
 
 static bool cmode_find_cmap(const cmode_map &cmap, std::string &cmode_str, uint32_t &cmode) {
 	// 1. try find by name
@@ -277,3 +222,96 @@ bool UAS::cmode_from_str(std::string cmode_str, uint32_t &custom_mode) {
 	ROS_ERROR_NAMED("uas", "MODE: Unsupported FCU");
 	return false;
 }
+
+/* -*- enum stringify -*- */
+
+//! MAV_AUTOPILOT values
+static const std::array<const std::string, 18> autopilot_strings = {
+	/*  0 */ "Generic",
+	/*  1 */ "PIXHAWK",
+	/*  2 */ "SLUGS",
+	/*  3 */ "ArduPilotMega",
+	/*  4 */ "OpenPilot",
+	/*  5 */ "Generic-WP-Only",
+	/*  6 */ "Generic-WP-Simple-Nav",
+	/*  7 */ "Generic-Mission-Full",
+	/*  8 */ "INVALID",
+	/*  9 */ "Paparazzi",
+	/* 10 */ "UDB",
+	/* 11 */ "FlexiPilot",
+	/* 12 */ "PX4",
+	/* 13 */ "SMACCMPILOT",
+	/* 14 */ "AUTOQUAD",
+	/* 15 */ "ARMAZILA",
+	/* 16 */ "AEROB",
+	/* 17 */ "ASLUAV"
+};
+
+std::string UAS::str_autopilot(enum MAV_AUTOPILOT ap)
+{
+	size_t idx = size_t(ap);
+	if (idx >= autopilot_strings.size())
+		return std::to_string(idx);
+
+	return autopilot_strings[idx];
+}
+
+static const std::array<const std::string, 27> type_strings = {
+	/*  0 */ "Generic",
+	/*  1 */ "Fixed-Wing",
+	/*  2 */ "Quadrotor",
+	/*  3 */ "Coaxial",
+	/*  4 */ "Helicopter",
+	/*  5 */ "Antenna-Tracker",
+	/*  6 */ "GCS",
+	/*  7 */ "Airship",
+	/*  8 */ "Free-Balloon",
+	/*  9 */ "Rocket",
+	/* 10 */ "Ground-Rover",
+	/* 11 */ "Surface-Boat",
+	/* 12 */ "Submarine",
+	/* 13 */ "Hexarotor",
+	/* 14 */ "Octorotor",
+	/* 15 */ "Tricopter",
+	/* 16 */ "Flapping-Wing",
+	/* 17 */ "Kite",
+	/* 18 */ "Onboard-Controller",
+	/* 19 */ "VTOL-Duorotor",
+	/* 20 */ "VTOL-Quadrotor",
+	/* 21 */ "VTOL-RESERVED1",
+	/* 22 */ "VTOL-RESERVED2",
+	/* 23 */ "VTOL-RESERVED3",
+	/* 24 */ "VTOL-RESERVED4",
+	/* 25 */ "VTOL-RESERVED5",
+	/* 26 */ "Gimbal"
+};
+
+std::string UAS::str_type(enum MAV_TYPE type)
+{
+	size_t idx = size_t(type);
+	if (idx >= type_strings.size())
+		return std::to_string(idx);
+
+	return type_strings[idx];
+}
+
+static const std::array<const std::string, 8> state_strings = {
+	/*  0 */ "Uninit",
+	/*  1 */ "Boot",
+	/*  2 */ "Calibrating",
+	/*  3 */ "Standby",
+	/*  4 */ "Active",
+	/*  5 */ "Critical",
+	/*  6 */ "Emergency",
+	/*  7 */ "Poweroff"
+};
+
+std::string UAS::str_system_status(enum MAV_STATE st)
+{
+	size_t idx = size_t(st);
+	if (idx >= state_strings.size())
+		return std::to_string(idx);
+
+	return state_strings[idx];
+}
+

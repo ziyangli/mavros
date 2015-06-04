@@ -71,6 +71,8 @@ add_message_files(
   OverrideRCIn.msg
   VFR_HUD.msg
   FileEntry.msg
+  ActuatorControl.msg
+
   ManualSetpoint.msg
   AttitudeCtrl.msg
 )
@@ -157,7 +159,10 @@ include_directories(
 
 
 add_library(mavros
-  src/lib/uas.cpp
+  src/lib/uas_data.cpp
+  src/lib/uas_stringify.cpp
+  src/lib/uas_timesync.cpp
+  src/lib/uas_sensor_orientation.cpp
   src/lib/mavros.cpp
   src/lib/mavlink_diag.cpp
   src/lib/rosconsole_bridge.cpp
@@ -190,6 +195,8 @@ add_library(mavros_plugins
   src/plugins/setpoint_attitude.cpp
   src/plugins/vfr_hud.cpp
   src/plugins/ftp.cpp
+  src/plugins/actuator_control.cpp
+  
   src/plugins/manual_setpoint.cpp
 )
 add_dependencies(mavros_plugins
@@ -221,6 +228,7 @@ add_dependencies(gcs_bridge
   mavros_generate_messages_cpp
 )
 target_link_libraries(gcs_bridge
+  mavros
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )

@@ -107,6 +107,7 @@ include_directories(
 
 ## Declare a cpp library
 add_library(mavros_extras
+  src/plugins/distance_sensor.cpp
   src/plugins/px4flow.cpp
   src/plugins/image_pub.cpp
   src/plugins/mocap_pose_estimate.cpp
@@ -118,6 +119,7 @@ add_dependencies(mavros_extras
   mavros_extras_generate_messages_cpp
 )
 target_link_libraries(mavros_extras
+  ${mavros_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 
@@ -126,6 +128,7 @@ add_executable(gcs_image_bridge
   src/gcs_image_bridge.cpp
 )
 target_link_libraries(gcs_image_bridge
+  ${mavros_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 
